@@ -73,7 +73,7 @@ export const Stacks = [
     { name: "Nginx", icon: SiNginx },
 
     // DATABASES
-    { name: "PostgreSQL", icon: SiPostgresql },
+    { name: "Postgres", icon: SiPostgresql },
     { name: "MongoDB", icon: SiMongodb },
     { name: "MariaDB", icon: SiMariadb },
     { name: "Redis", icon: SiRedis },
