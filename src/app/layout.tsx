@@ -1,18 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ProgressProvider } from "@/provider/ProgressProvider";
 import { ThemeProvider } from "@/provider/theme-provider";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import QueryClientProviderMain from "@/provider/QueryClientProvider";
 
 export const metadata: Metadata = {
   title: "Docker Inspect",
@@ -37,7 +27,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ProgressProvider>
-            {children}
+            <QueryClientProviderMain>
+              {children}
+            </QueryClientProviderMain>
           </ProgressProvider>
         </ThemeProvider>
       </body>

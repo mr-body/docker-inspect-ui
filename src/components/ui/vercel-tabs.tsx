@@ -24,7 +24,8 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
     const [activeIndex, setActiveIndex] = useState(0)
     const [hoverStyle, setHoverStyle] = useState({})
     const [activeStyle, setActiveStyle] = useState({ left: "0px", width: "0px" })
-    const tabRefs = useRef<(HTMLDivElement | null)[]>([])
+    // const tabRefs = useRef<(HTMLDivElement | null)[]>([])
+    const tabRefs = useRef<(HTMLAnchorElement | null)[]>([])
 
     const tabs = [
       {
@@ -54,13 +55,9 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
       {
         id: "usage",
         label: "Volumes",
+        href: "/manager/volume",
         icon: HardDrive,
-      },
-      {
-        id: "monitoring",
-        label: "Environment",
-        icon: Settings2,
-      },
+      }
     ];
 
     useEffect(() => {
@@ -131,7 +128,9 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
                 <Link
                   key={tab.id}
                   href={tab.href || "/manager"}
-                  ref={(el) => (tabRefs.current[index] = el)}
+                  ref={(el) => {
+                    tabRefs.current[index] = el
+                  }}
                   className={cn(
                     "px-3 py-2 cursor-pointer transition-colors duration-300 h-[30px]",
                     index === activeIndex
