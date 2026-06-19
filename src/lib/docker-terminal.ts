@@ -1,5 +1,8 @@
-export const WS_BASE = process.env.NEXT_PUBLIC_WS_SERVER || "ws://localhost:8000";
+import { Environment } from "@/service/environment";
 
-export function terminalWsUrl(container: string, shell = "sh") {
+export async function terminalWsUrl(container: string, shell = "sh") {
+  const env = await Environment()
+  const WS_BASE = env.WS_SERVER || "ws://localhost:8000";
+  
   return `${WS_BASE}/terminal/container?container=${encodeURIComponent(container)}&shell=${encodeURIComponent(shell)}`;
 }

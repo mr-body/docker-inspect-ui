@@ -1,6 +1,7 @@
 "use client"
 
 import { useSession } from "@/hooks/useSession";
+import { Environment } from "@/service/environment";
 import { useEffect, useRef } from "react";
 
 const { Terminal } = await import("xterm");
@@ -37,7 +38,8 @@ export function LogsPane({ identifier }: { identifier: string }) {
 
         (async () => {
             try {
-                const API_BASE = process.env.NEXT_PUBLIC_HTTP_SERVER || "http://localhost:8000";
+                const env = await Environment()
+                const API_BASE = env.SERVER || "http://localhost:8000";
 
                 const res = await fetch(
                     `${API_BASE}/log/stream?identifier=${encodeURIComponent(identifier)}`,

@@ -1,6 +1,7 @@
 "use client"
 
 import HeaderApp from "@/components/layout/header";
+import { Environment } from "@/service/environment";
 import { useEffect, useRef } from "react";
 
 export default function TerminalPane() {
@@ -18,7 +19,8 @@ export default function TerminalPane() {
             await import("xterm/css/xterm.css");
             if (disposed || !ref.current) return;
 
-            const WS_BASE = process.env.NEXT_PUBLIC_WS_SERVER || "ws://localhost:8000";
+            const env = await Environment()
+            const WS_BASE = env.WS_SERVER || "ws://localhost:8000";
 
             term = new Terminal({ cursorBlink: true, fontSize: 13, theme: { background: "#000" } });
             fit = new FitAddon();

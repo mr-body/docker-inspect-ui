@@ -24,7 +24,7 @@ export default function TerminalPane({ container }: { container: string }) {
             term.open(ref.current);
             fit.fit();
 
-            ws = new WebSocket(terminalWsUrl(container));
+            ws = new WebSocket(await terminalWsUrl(container));
             ws.onopen = () => {
                 term.write(`\r\x1b[32m● Conectado\x1b[0m\r\n`);
             };
