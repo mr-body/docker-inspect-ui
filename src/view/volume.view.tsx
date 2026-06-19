@@ -11,11 +11,10 @@ import {
   File as FileIcon,
   Download,
 } from "lucide-react";
-
-import { api } from "@/lib/docker-api";
 import { PageHeader, Card, JsonView } from "@/components/DataPanel";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useVolume, useVolumeFiles } from "@/hooks/useVolumeApi";
 
 type Node = { name: string; path: string; isDir: boolean; size?: number };
 
@@ -34,8 +33,8 @@ function normalize(raw: any): Node[] {
   });
 }
 
-export default function VolumeDetail({name}:{name: string}) {
-  const info = useQuery({ queryKey: ["volume", name], queryFn: () => api.volume(name) });
+export default function VolumeDetail({ name }: { name: string }) {
+  const info = useVolume(name);
 
   return (
     <div>
@@ -50,7 +49,12 @@ export default function VolumeDetail({name}:{name: string}) {
         description="Detalhes do volume e navegador de arquivos."
         action={
           <Button asChild variant="outline" size="sm">
-            <a href={api.volumeBackupUrl(name)} target="_blank" rel="noreferrer">
+            <a href={"https://localhost:3001/volume/"
+              + name
+              + "/backup?"
+              + new URLSearchParams({
+                token: "dsodsoydodyso"
+              })} target="_blank" rel="noreferrer">
               <Download className="h-3.5 w-3.5" /> Baixar backup
             </a>
           </Button>
@@ -98,11 +102,7 @@ function DirNode({
   depth?: number;
 }) {
   const [open, setOpen] = useState(defaultOpen);
-  const q = useQuery({
-    queryKey: ["volume-files", volume, path],
-    queryFn: () => api.volumeFiles(volume, path),
-    enabled: open,
-  });
+  const q = useVolumeFiles(volume, path);
 
   const nodes = useMemo(() => normalize(q.data), [q.data]);
 

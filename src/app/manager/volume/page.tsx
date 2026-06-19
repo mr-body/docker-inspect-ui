@@ -1,11 +1,10 @@
 "use client"
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useVolumes, useVolumeRemove } from "@/hooks/useVolumeApi";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Trash2, FolderOpen, Loader2 } from "lucide-react";
 
-import { api } from "@/lib/docker-api";
 import { PageHeader, Card } from "@/components/DataPanel";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,20 +21,25 @@ import Link from "next/link";
 
 
 export default function Volumes() {
-  const qc = useQueryClient();
-  const { data, isLoading } = useQuery({ queryKey: ["volumes"], queryFn: api.volumes });
+  const { data, isLoading } = useVolumes();
   const list: any[] = Array.isArray(data) ? data : (data as any)?.Volumes || [];
   const [confirmDel, setConfirmDel] = useState<string | null>(null);
 
-  const remove = useMutation({
-    mutationFn: (name: string) => api.volumeRemove(name),
-    onSuccess: () => {
-      toast.success("Volume removido");
-      qc.invalidateQueries({ queryKey: ["volumes"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-    onSettled: () => setConfirmDel(null),
-  });
+  const remove = useVolumeRemove();
+
+  const handleRemove = () => {
+    if (!confirmDel) return;
+    remove.mutate(confirmDel, {
+      onSuccess: () => {
+        toast.success("Volume removido");
+        setConfirmDel(null);
+      },
+      onError: (e: Error) => {
+        toast.error(e.message);
+        setConfirmDel(null);
+      }
+    });
+  };
 
   return (
     <div>
@@ -92,7 +96,7 @@ export default function Volumes() {
             <AlertDialogCancel disabled={remove.isPending}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               disabled={remove.isPending}
-              onClick={() => confirmDel && remove.mutate(confirmDel)}
+              onClick={handleRemove}
             >
               {remove.isPending && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
               Deletar

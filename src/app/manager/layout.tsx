@@ -1,5 +1,4 @@
 import HeaderApp from "@/components/layout/header";
-import { ThemeProvider } from "@/provider/theme-provider";
 
 export default function RootLayout({
   children,

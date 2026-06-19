@@ -1,10 +1,22 @@
+"use client";
+
 import StackIcon from "@/components/ui/stackI-con";
-import { DockerImageService } from "@/service/images";
+import { useImages } from "@/hooks/useImages";
 
-export default async function ImageGrid() {
-  const docker = new DockerImageService();
+export default function ImageGrid() {
+  const { data: images, isLoading, error } = useImages();
 
-  const images = await docker.getImages();
+  if (isLoading) {
+    return <div>Carregando imagens...</div>;
+  }
+
+  if (error) {
+    return <div>Erro ao carregar imagens.</div>;
+  }
+
+  if (!images) {
+    return null;
+  }
 
   return (
     <div className="grid gap-4">

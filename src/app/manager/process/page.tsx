@@ -1,11 +1,9 @@
 "use client"
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Power, RotateCw, TerminalSquare, ScrollText, Loader2, RefreshCw } from "lucide-react";
-
-import { api, containerId, containerLabel } from "@/lib/docker-api";
+import { useProcesses, useProcessStop, useProcessRestart } from "@/hooks/useProcessApi";
 import { PageHeader, Card } from "@/components/DataPanel";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +27,7 @@ import StackIcon from "@/components/ui/stackI-con";
 import { Badge } from "@/components/ui/badge";
 import TerminalPane from "@/features/terminal";
 import dynamic from "next/dynamic";
+import { containerId, containerLabel } from "@/lib/utils";
 
 type ActionKind = "stop" | "restart";
 
@@ -38,27 +37,33 @@ const LogsPane = dynamic(
 );
 
 export default function ProcessesPage() {
-  const qc = useQueryClient();
-  const { data, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ["processes"],
-    queryFn: api.processes,
-    refetchInterval: 5000,
-  });
+  const { data, isLoading, refetch, isFetching } = useProcesses();
 
   const [confirm, setConfirm] = useState<{ kind: ActionKind; id: string; name: string } | null>(null);
   const [terminalFor, setTerminalFor] = useState<string | null>(null);
   const [logsFor, setLogsFor] = useState<string | null>(null);
 
-  const action = useMutation({
-    mutationFn: ({ kind, id }: { kind: ActionKind; id: string }) =>
-      kind === "stop" ? api.processStop(id) : api.processRestart(id),
-    onSuccess: (_d, v) => {
-      toast.success(v.kind === "stop" ? "Container parado" : "Container reiniciado");
-      qc.invalidateQueries({ queryKey: ["processes"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-    onSettled: () => setConfirm(null),
-  });
+  const stopMutation = useProcessStop();
+  const restartMutation = useProcessRestart();
+
+  const handleAction = () => {
+    if (!confirm) return;
+    const isStop = confirm.kind === "stop";
+    const mutator = isStop ? stopMutation : restartMutation;
+
+    mutator.mutate(confirm.id, {
+      onSuccess: () => {
+        toast.success(isStop ? "Container parado" : "Container reiniciado");
+        setConfirm(null);
+      },
+      onError: (e: Error) => {
+        toast.error(e.message);
+        setConfirm(null);
+      }
+    });
+  };
+
+  const isPending = stopMutation.isPending || restartMutation.isPending;
 
   const list = (data) ?? [];
 
@@ -204,12 +209,12 @@ export default function ProcessesPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={action.isPending}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={isPending}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              disabled={action.isPending}
-              onClick={() => confirm && action.mutate({ kind: confirm.kind, id: confirm.id })}
+              disabled={isPending}
+              onClick={handleAction}
             >
-              {action.isPending && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+              {isPending && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
               Confirmar
             </AlertDialogAction>
           </AlertDialogFooter>

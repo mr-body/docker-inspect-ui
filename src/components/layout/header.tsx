@@ -7,6 +7,7 @@ import { Button } from "../ui/button";
 import { GrDocument } from "react-icons/gr";
 import {
     HelpCircle,
+    Terminal,
     User,
 } from "lucide-react";
 import { NavUser } from "../ui/nav-user";
@@ -21,6 +22,11 @@ export default function HeaderApp() {
                     <h1 className="text-xl font-bold">Docker Inspect</h1>
                 </div>
                 <div className="flex items-center gap-2">
+                    <Link href="/shell" className="flex items-center gap-2">
+                        <Button variant={"outline"} size={"icon"}>
+                            <Terminal size={20} />
+                        </Button>
+                    </Link>
                     <Link href="">
                         <Button size={'icon'} variant={"outline"} className="rounded-full">
                             <HelpCircle size={30} />

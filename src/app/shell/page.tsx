@@ -1,9 +1,9 @@
 "use client"
 
-import { terminalWsUrl } from "@/lib/docker-terminal";
+import HeaderApp from "@/components/layout/header";
 import { useEffect, useRef } from "react";
 
-export default function TerminalPane({ container }: { container: string }) {
+export default function TerminalPane() {
     const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -18,15 +18,17 @@ export default function TerminalPane({ container }: { container: string }) {
             await import("xterm/css/xterm.css");
             if (disposed || !ref.current) return;
 
+            const WS_BASE = process.env.NEXT_PUBLIC_WS_SERVER || "ws://localhost:8000";
+
             term = new Terminal({ cursorBlink: true, fontSize: 13, theme: { background: "#000" } });
             fit = new FitAddon();
             term.loadAddon(fit);
             term.open(ref.current);
             fit.fit();
 
-            ws = new WebSocket(terminalWsUrl(container));
+            ws = new WebSocket(`${WS_BASE}/terminal/local`);
             ws.onopen = () => {
-                term.write(`\r\x1b[32m● Conectado\x1b[0m\r\n`);
+                term.write(`\r\x1b[32m● Shell local aberto\x1b[0m\r\n`);
             };
             ws.onmessage = (e) => term.write(typeof e.data === "string" ? e.data : "");
             ws.onclose = () => {
@@ -47,10 +49,13 @@ export default function TerminalPane({ container }: { container: string }) {
                 term?.dispose();
             } catch { }
         };
-    }, [container]);
+    }, []);
 
     return (
-        <div className="flex h-[calc(100vh-64px)] flex-col">
+        <div className="flex h-screen flex-col">
+            <header className="border-b bg-sidebar">
+                <HeaderApp />
+            </header>
             <div ref={ref} className="flex-1 overflow-hidden bg-black p-2" />
         </div>
     );

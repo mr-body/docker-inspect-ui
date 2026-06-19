@@ -1,7 +1,10 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/docker-api";
+import { useHealth } from "@/hooks/useMiscApi";
+import { useImages } from "@/hooks/useImageApi";
+import { useNetworks } from "@/hooks/useNetworkApi";
+import { useProcesses } from "@/hooks/useProcessApi";
+import { useVolumes } from "@/hooks/useVolumeApi";
 import { PageHeader, Card } from "@/components/DataPanel";
 import { Boxes, Cpu, Network, HardDrive, Activity } from "lucide-react";
 import Link from "next/link";
@@ -21,11 +24,11 @@ function Stat({ icon: Icon, label, value, to }: any) {
 }
 
 export default function Overview() {
-  const health = useQuery({ queryKey: ["health"], queryFn: api.health, refetchInterval: 10000 });
-  const images = useQuery({ queryKey: ["images"], queryFn: api.images });
-  const networks = useQuery({ queryKey: ["networks"], queryFn: api.networks });
-  const procs = useQuery({ queryKey: ["processes"], queryFn: api.processes });
-  const volumes = useQuery({ queryKey: ["volumes"], queryFn: api.volumes });
+  const health = useHealth();
+  const images = useImages();
+  const networks = useNetworks();
+  const procs = useProcesses();
+  const volumes = useVolumes();
 
   const count = (q: any) => (Array.isArray(q.data) ? q.data.length : q.isLoading ? "…" : "?");
 

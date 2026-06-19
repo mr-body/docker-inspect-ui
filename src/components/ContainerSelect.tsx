@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useState } from "react";
-import { api, containerId, containerLabel } from "@/lib/docker-api";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -12,8 +11,10 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { cn } from "@/lib/utils";
+import { cn, containerId, containerLabel } from "@/lib/utils";
 import StackIcon from "./ui/stackI-con";
+import { useProcesses } from "@/hooks/useProcessApi";
+import { DockerProcess } from "@/types/process";
 
 export function ContainerSelect({
   value,
@@ -27,8 +28,8 @@ export function ContainerSelect({
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const { data, isLoading } = useQuery({ queryKey: ["processes"], queryFn: api.processes });
-  const items = (data) ?? [];
+  const { data, isLoading } = useProcesses();
+  const items = (data ?? []) as DockerProcess[];
   const selected = items.find((c) => containerId(c) === value);
 
   return (
@@ -71,7 +72,7 @@ export function ContainerSelect({
                     <Check className={cn("mr-2 h-4 w-4", value === id ? "opacity-100" : "opacity-0")} />
                     <div className="flex items-center gap-3">
                       <StackIcon name={c.image} className="w-10 h-10" />
-                      <div  className="flex flex-col">
+                      <div className="flex flex-col">
                         <span className="text-sm">{label}</span>
                         <span className="font-mono text-[10px] text-muted-foreground">
                           {(c.name || c.image) ?? id?.slice(0, 12)}

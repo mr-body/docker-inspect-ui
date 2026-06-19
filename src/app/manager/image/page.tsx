@@ -1,10 +1,9 @@
 "use client"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Trash2, Play, Loader2 } from "lucide-react";
 
-import { api } from "@/lib/docker-api";
+import { useImages, useImageRemove, useImageRun } from "@/hooks/useImageApi";
 import { PageHeader, Card, JsonView } from "@/components/DataPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,21 +30,26 @@ import StackIcon from "@/components/ui/stackI-con";
 
 
 export default function Images() {
-    const qc = useQueryClient();
-    const { data, isLoading } = useQuery({ queryKey: ["images"], queryFn: api.images });
+    const { data, isLoading } = useImages();
     const [sel, setSel] = useState<any>(null);
     const [confirmDel, setConfirmDel] = useState<{ id: string; tag: string } | null>(null);
     const [runFor, setRunFor] = useState<{ image: string } | null>(null);
 
-    const remove = useMutation({
-        mutationFn: (id: string) => api.imageRemove(id),
-        onSuccess: () => {
-            toast.success("Imagem removida");
-            qc.invalidateQueries({ queryKey: ["images"] });
-        },
-        onError: (e: Error) => toast.error(e.message),
-        onSettled: () => setConfirmDel(null),
-    });
+    const remove = useImageRemove();
+
+    const handleRemove = () => {
+        if (!confirmDel) return;
+        remove.mutate(confirmDel.id, {
+            onSuccess: () => {
+                toast.success("Imagem removida");
+                setConfirmDel(null);
+            },
+            onError: (e: Error) => {
+                toast.error(e.message);
+                setConfirmDel(null);
+            }
+        });
+    };
 
     return (
         <div>
@@ -114,7 +118,7 @@ export default function Images() {
                         <AlertDialogCancel disabled={remove.isPending}>Cancelar</AlertDialogCancel>
                         <AlertDialogAction
                             disabled={remove.isPending}
-                            onClick={() => confirmDel && remove.mutate(confirmDel.id)}
+                            onClick={handleRemove}
                         >
                             {remove.isPending && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
                             Deletar
@@ -137,23 +141,25 @@ function RunDialog({
     image?: string;
     onClose: () => void;
 }) {
-    const qc = useQueryClient();
     const [name, setName] = useState("");
     const [ports, setPorts] = useState("");
     const [volumes, setVolumes] = useState("");
 
-    const run = useMutation({
-        mutationFn: () => api.imageRun({ image: image!, name, ports, volumes }),
-        onSuccess: () => {
-            toast.success("Container iniciado");
-            qc.invalidateQueries({ queryKey: ["processes"] });
-            onClose();
-            setName("");
-            setPorts("");
-            setVolumes("");
-        },
-        onError: (e: Error) => toast.error(e.message),
-    });
+    const run = useImageRun();
+
+    const handleRun = () => {
+        if (!image) return;
+        run.mutate({ image, name, ports, volumes }, {
+            onSuccess: () => {
+                toast.success("Container iniciado");
+                onClose();
+                setName("");
+                setPorts("");
+                setVolumes("");
+            },
+            onError: (e: Error) => toast.error(e.message)
+        });
+    };
 
     return (
         <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -182,7 +188,7 @@ function RunDialog({
                     <Button variant="outline" onClick={onClose} disabled={run.isPending}>
                         Cancelar
                     </Button>
-                    <Button onClick={() => run.mutate()} disabled={!image || run.isPending}>
+                    <Button onClick={handleRun} disabled={!image || run.isPending}>
                         {run.isPending && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
                         Iniciar
                     </Button>

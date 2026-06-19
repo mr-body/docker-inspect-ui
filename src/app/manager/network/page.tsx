@@ -1,11 +1,10 @@
 "use client"
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Trash2, Plug, PlugZap, Loader2, ArrowUpRight } from "lucide-react";
 
-import { api } from "@/lib/docker-api";
+import { useNetworks, useNetworkRemove, useNetworkConnect, useNetworkDisconnect } from "@/hooks/useNetworkApi";
 import { PageHeader, Card } from "@/components/DataPanel";
 import { Button } from "@/components/ui/button";
 import { ContainerSelect } from "@/components/ContainerSelect";
@@ -32,35 +31,43 @@ import Link from "next/link";
 type ConnKind = "connect" | "disconnect";
 
 export default function Networks() {
-    const qc = useQueryClient();
-    const { data, isLoading } = useQuery({ queryKey: ["networks"], queryFn: api.networks });
+    const { data, isLoading } = useNetworks();
     const [confirmDel, setConfirmDel] = useState<{ id: string; name: string } | null>(null);
     const [conn, setConn] = useState<{ kind: ConnKind; id: string; name: string } | null>(null);
     const [container, setContainer] = useState("");
 
-    const remove = useMutation({
-        mutationFn: (id: string) => api.networkRemove(id),
-        onSuccess: () => {
-            toast.success("Rede removida");
-            qc.invalidateQueries({ queryKey: ["networks"] });
-        },
-        onError: (e: Error) => toast.error(e.message),
-        onSettled: () => setConfirmDel(null),
-    });
+    const remove = useNetworkRemove();
+    const connectMutation = useNetworkConnect();
+    const disconnectMutation = useNetworkDisconnect();
 
-    const connect = useMutation({
-        mutationFn: () =>
-            conn!.kind === "connect"
-                ? api.networkConnect(conn!.id, container)
-                : api.networkDisconnect(conn!.id, container),
-        onSuccess: () => {
-            toast.success(conn?.kind === "connect" ? "Container conectado" : "Container desconectado");
-            qc.invalidateQueries({ queryKey: ["networks"] });
-            setConn(null);
-            setContainer("");
-        },
-        onError: (e: Error) => toast.error(e.message),
-    });
+    const handleRemove = () => {
+        if (!confirmDel) return;
+        remove.mutate(confirmDel.id, {
+            onSuccess: () => {
+                toast.success("Rede removida");
+                setConfirmDel(null);
+            },
+            onError: (e: Error) => {
+                toast.error(e.message);
+                setConfirmDel(null);
+            }
+        });
+    };
+
+    const handleConnectAction = () => {
+        if (!conn) return;
+        const mutator = conn.kind === "connect" ? connectMutation : disconnectMutation;
+        mutator.mutate({ id: conn.id, container }, {
+            onSuccess: () => {
+                toast.success(conn.kind === "connect" ? "Container conectado" : "Container desconectado");
+                setConn(null);
+                setContainer("");
+            },
+            onError: (e: Error) => toast.error(e.message)
+        });
+    };
+
+    const isConnectPending = connectMutation.isPending || disconnectMutation.isPending;
 
     return (
         <div>
@@ -138,7 +145,7 @@ export default function Networks() {
                         <AlertDialogCancel disabled={remove.isPending}>Cancelar</AlertDialogCancel>
                         <AlertDialogAction
                             disabled={remove.isPending}
-                            onClick={() => confirmDel && remove.mutate(confirmDel.id)}
+                            onClick={handleRemove}
                         >
                             {remove.isPending && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
                             Remover
@@ -162,14 +169,14 @@ export default function Networks() {
                         <ContainerSelect value={container} onChange={setContainer} className="w-full" />
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setConn(null)} disabled={connect.isPending}>
+                        <Button variant="outline" onClick={() => setConn(null)} disabled={isConnectPending}>
                             Cancelar
                         </Button>
                         <Button
-                            onClick={() => connect.mutate()}
-                            disabled={!container || connect.isPending}
+                            onClick={handleConnectAction}
+                            disabled={!container || isConnectPending}
                         >
-                            {connect.isPending && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+                            {isConnectPending && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
                             {conn?.kind === "connect" ? "Conectar" : "Desconectar"}
                         </Button>
                     </DialogFooter>

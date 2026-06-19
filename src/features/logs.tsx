@@ -34,7 +34,8 @@ export function LogsPane({ identifier }: { identifier: string }) {
 
         (async () => {
             try {
-                const { API_BASE } = await import("@/lib/docker-api");
+
+                const API_BASE = process.env.NEXT_PUBLIC_HTTP_SERVER || "http://localhost:8000";
 
                 const res = await fetch(
                     `${API_BASE}/log/stream?identifier=${encodeURIComponent(identifier)}`,

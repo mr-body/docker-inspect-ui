@@ -1,10 +1,22 @@
-import { DockerNetworkService } from "@/service/network";
+"use client";
+
+import { useNetworks } from "@/hooks/useNetworks";
 import Link from "next/link";
 
-export default async function NetworkGrid() {
-  const docker = new DockerNetworkService();
+export default function NetworkGrid() {
+  const { data: networks, isLoading, error } = useNetworks();
 
-  const networks = await docker.getNetworks();
+  if (isLoading) {
+    return <div>Carregando networks...</div>;
+  }
+
+  if (error) {
+    return <div>Erro ao carregar networks.</div>;
+  }
+
+  if (!networks) {
+    return null;
+  }
 
   return (
     <div className="grid gap-4">

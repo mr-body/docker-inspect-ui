@@ -19,3 +19,11 @@ export function getStackIcon(name: string) {
 
   return stack?.icon ?? SiDocker;
 }
+
+export function containerLabel(c: any): string {
+  return c?.Names || c?.name || c?.Id?.slice(0, 12) || c?.id?.slice(0, 12) || "?";
+}
+
+export function containerId(c: any): string {
+  return c?.Id || c?.id || c?.Names || c?.name;
+}

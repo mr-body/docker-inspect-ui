@@ -1,20 +1,19 @@
+"use client"
+
 import { ServerManagementTable } from "@/components/ui/server-management-table";
-import StackIcon from "@/components/ui/stackI-con";
-import { DockerNetworkService } from "@/service/network";
-import { Download, List, Network, RefreshCw, Trash2 } from "lucide-react";
+import { Download, RefreshCw, Trash2 } from "lucide-react";
 import { NetworkDiagram } from "./NetworkDiagram";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BsDiagram2, BsList } from "react-icons/bs";
 import { Button } from "@/components/ui/button";
+import { useNetwork } from "@/hooks/useNetworkApi";
+import { useParams } from "next/navigation";
 
-interface RouteProps {
-  params: Promise<{ id: string }>
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}
-export default async function NetworkIDPage({ params }: RouteProps) {
-  const docker = new DockerNetworkService();
-  const id = (await params).id;
-  const network = await docker.getNetwork(id);
+export default function NetworkIDPage() {
+  const parmas = useParams()
+  const id = parmas.id as string;
+
+  const network = useNetwork(id)
 
   return (
     <Tabs defaultValue="containers" className="w-full flex flex-col p-0 m-0 justify-start relative">
@@ -25,11 +24,11 @@ export default async function NetworkIDPage({ params }: RouteProps) {
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold">
-                  {network.name}
+                  {network.data?.name}
                 </h1>
               </div>
               <p className="text-[11px] font-mono text-muted-foreground mt-1 leading-none">
-                {network.id}
+                {network.data?.id}
               </p>
             </div>
           </div>
@@ -81,11 +80,13 @@ export default async function NetworkIDPage({ params }: RouteProps) {
         {/* TABLE */}
         <div className="flex-1">
           <TabsContent value="containers">
-            <ServerManagementTable containers={network.containers} />
+            <ServerManagementTable containers={network.data?.containers} />
           </TabsContent>
-          <TabsContent value="diagram" className="flex-1 bg-blue-700 rounded-sm">
-            <NetworkDiagram containers={network.containers} gatewayIp={network.ipam?.Config?.length && network.ipam.Config[0].Subnet || "default"} />
-          </TabsContent>
+          {network.data?.containers && (
+            <TabsContent value="diagram" className="flex-1 bg-blue-700 rounded-sm">
+              <NetworkDiagram containers={network.data?.containers} gatewayIp={network.data?.ipam?.Config?.length && network.data?.ipam.Config[0].Subnet || "default"} />
+            </TabsContent>
+          )}
         </div>
 
         {/* SIDEBAR */}
@@ -100,13 +101,13 @@ export default async function NetworkIDPage({ params }: RouteProps) {
               <div className="flex items-center justify-between px-4 py-3">
                 <span className="text-xs">Driver</span>
                 <span className="text-xs font-mono   px-2 py-0.5 rounded">
-                  {network.driver}
+                  {network.data?.driver}
                 </span>
               </div>
               <div className="flex items-center justify-between px-4 py-3">
                 <span className="text-xs">Scope</span>
                 <span className="text-xs font-mono   px-2 py-0.5 rounded">
-                  {network.scope}
+                  {network.data?.scope}
                 </span>
               </div>
             </div>
@@ -117,13 +118,13 @@ export default async function NetworkIDPage({ params }: RouteProps) {
             <div className="px-4 py-3 border-b  flex items-center justify-between">
               <p className="text-xs font-medium  uppercase tracking-widest">IPAM</p>
               <span className="text-xs font-mono  px-2 py-0.5 rounded">
-                {network.ipam?.Driver ?? "N/A"}
+                {network.data?.ipam?.Driver ?? "N/A"}
               </span>
             </div>
 
-            {network.ipam?.Config?.length ? (
+            {network.data?.ipam?.Config?.length ? (
               <div className="divide-y divide-zinc-800">
-                {network.ipam.Config.map((cfg, i) => (
+                {network.data?.ipam.Config.map((cfg, i) => (
                   <div key={i} className="px-4 py-3 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-xs">Subnet</span>
