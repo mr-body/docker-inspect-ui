@@ -28,7 +28,31 @@ export default function TerminalPane() {
 
             ws = new WebSocket(`${WS_BASE}/terminal/local`);
             ws.onopen = () => {
-                term.write(`\r\x1b[32m● Shell local aberto\x1b[0m\r\n`);
+                term.write("\r\n");
+
+                // Status
+                term.write("\x1b[32m● Shell Local Conectado\x1b[0m\r\n");
+                term.write("\x1b[90m──────────────────────────────────────────────────────────────\x1b[0m\r\n\r\n");
+
+                // Logo
+                term.write("\x1b[36m");
+                term.write("M\"\"\"\"\"\"'YMM    oo                                                dP\r\n");
+                term.write("M  mmmm. `M                                                      88\r\n");
+                term.write("M  MMMMM  M    dP 88d888b. .d8888b. 88d888b. .d8888b. .d8888b.d8888P\r\n");
+                term.write("M  MMMMM  M    88 88'  `88 Y8ooooo. 88'  `88 88ooood8 88'  `\"\"   88\r\n");
+                term.write("M  MMMM' .M    88 88    88       88 88.  .88 88.  ... 88.  ...   88\r\n");
+                term.write("M       .MM    dP dP    dP `88888P' 88Y888P' `88888P' `88888P'   dP\r\n");
+                term.write("MMMMMMMMMMM                         88\r\n");
+                term.write("                                    dP\r\n");
+                term.write("\x1b[0m\r\n");
+
+                // Informações
+                term.write("\x1b[33mDocker Inspect Terminal\x1b[0m\r\n");
+                term.write("\x1b[90mDigite 'help' para listar os comandos disponíveis.\x1b[0m\r\n");
+                term.write("\x1b[90mPressione Ctrl+C para interromper um processo.\x1b[0m\r\n\r\n");
+
+                // Prompt inicial
+                term.write("\x1b[32m$\x1b[0m ");
             };
             ws.onmessage = (e) => term.write(typeof e.data === "string" ? e.data : "");
             ws.onclose = () => {

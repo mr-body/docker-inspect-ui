@@ -1,5 +1,6 @@
 "use server";
 
+import { getToken } from "@/lib/getToken";
 import { DockerImage } from "@/types/image";
 import { DockerNetwork, DockerNetworkInspect } from "@/types/network";
 import { DockerProcess } from "@/types/process";
@@ -7,8 +8,19 @@ import { DockerProcess } from "@/types/process";
 const API_BASE = process.env.SERVER || "http://localhost:8000";
 
 async function j<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = await getToken();
+
+  const headers: Record<string, string> = {
+    ...(init?.headers as any),
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const r = await fetch(`${API_BASE}${path}`, {
     ...init,
+    headers,
     cache: "no-store", // Ensure we don't cache mutable server actions by default
   });
   if (!r.ok) {

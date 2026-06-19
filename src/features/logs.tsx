@@ -1,12 +1,15 @@
 "use client"
 
+import { useSession } from "@/hooks/useSession";
 import { useEffect, useRef } from "react";
+
 const { Terminal } = await import("xterm");
 const { FitAddon } = await import("xterm-addon-fit");
 import("xterm/css/xterm.css");
 
 export function LogsPane({ identifier }: { identifier: string }) {
     const terminalRef = useRef<HTMLDivElement>(null);
+    const { access_token } = useSession()
 
     useEffect(() => {
         if (!terminalRef.current) return;
@@ -34,12 +37,19 @@ export function LogsPane({ identifier }: { identifier: string }) {
 
         (async () => {
             try {
-
                 const API_BASE = process.env.NEXT_PUBLIC_HTTP_SERVER || "http://localhost:8000";
 
                 const res = await fetch(
                     `${API_BASE}/log/stream?identifier=${encodeURIComponent(identifier)}`,
-                    { signal: ctrl.signal }
+                    {
+                        method: "GET",
+                        signal: ctrl.signal,
+                        headers: {
+                            Authorization: `Bearer ${access_token}`,
+                            Accept: "text/event-stream",
+                        },
+                        cache: "no-store",
+                    }
                 );
 
                 if (!res.body) return;
@@ -49,9 +59,7 @@ export function LogsPane({ identifier }: { identifier: string }) {
 
                 while (true) {
                     const { value, done } = await reader.read();
-
                     if (done) break;
-
                     term.write(
                         decoder.decode(value, {
                             stream: true,
@@ -73,7 +81,7 @@ export function LogsPane({ identifier }: { identifier: string }) {
             window.removeEventListener("resize", resize);
             term.dispose();
         };
-    }, [identifier]);
+    }, [identifier, access_token]);
 
     return (
         <div

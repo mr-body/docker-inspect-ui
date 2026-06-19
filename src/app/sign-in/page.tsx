@@ -12,19 +12,30 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 
+import { useSignin } from "@/hooks/useSignin";
+import { toast } from "sonner";
+
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    function handleSubmit(e: React.FormEvent) {
+    const signInMutation = useSignin();
+
+    async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
 
-        console.log({
-            email,
-            password,
-        });
-
-        // aqui depois podes chamar tua API de login
+        signInMutation.mutateAsync({
+            username: email,
+            password
+        }, {
+            onSuccess() {
+                window.location.href = "/manager"
+            },
+            onError(error) {
+                toast.error(error.message)
+            }
+        }
+        )
     }
 
     return (
@@ -43,7 +54,7 @@ export default function LoginPage() {
                             <Label htmlFor="email">Email</Label>
                             <Input
                                 id="email"
-                                type="email"
+                                type="text"
                                 placeholder="email@exemplo.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -61,8 +72,8 @@ export default function LoginPage() {
                             />
                         </div>
 
-                        <Button type="submit" className="w-full">
-                            Entrar
+                        <Button type="submit" className="w-full" disabled={signInMutation.isPending}>
+                            {signInMutation.isPending ? "Entrando..." : "Entrar"}
                         </Button>
                     </form>
                 </CardContent>

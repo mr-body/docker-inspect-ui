@@ -1,3 +1,5 @@
+"use client"
+
 import DockerInspectIcon from "@/assets/icon";
 import { div } from "framer-motion/client";
 import Link from "next/link";
@@ -7,13 +9,17 @@ import { Button } from "../ui/button";
 import { GrDocument } from "react-icons/gr";
 import {
     HelpCircle,
+    LogOut,
     Terminal,
     User,
 } from "lucide-react";
 import { NavUser } from "../ui/nav-user";
 import { ModeToggle } from "../ui/mode-toggle";
+import { useSignOut } from "@/hooks/useSignOut";
 
 export default function HeaderApp() {
+    const { signOut, loading } = useSignOut();
+
     return (
         <header className="flex flex-col container m-auto max-w-6xl px-4">
             <div className="flex justify-between items-center h-20">
@@ -34,6 +40,14 @@ export default function HeaderApp() {
                     </Link>
                     <ModeToggle />
                     <NavUser />
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => signOut()}
+                        disabled={loading}
+                    >
+                        <LogOut size={18} />
+                    </Button>
                 </div>
             </div>
             <div className="flex justify-between items-center">
