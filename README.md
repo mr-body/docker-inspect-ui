@@ -20,8 +20,27 @@ O **Docker Inspect UI** é uma aplicação web que permite visualizar, explorar 
 - **TypeScript**
 - **React** (ou framework JS moderno, especifique aqui se necessário)
 - **CSS**
+## Executar Docker Inspect UI
 
-## 📦 Instalação
+```bash
+docker pull mrbody/docker-inspect-ui:beta.0.1
+
+docker run -d \
+  --name docker-inspect-ui \
+  -p 3000:3000 \
+  -e SERVER="http://SEU_IP:8000" \
+  -e WS_SERVER="ws://SEU_IP:8000" \
+  --restart unless-stopped \
+  mrbody/docker-inspect-ui:beta.0.1
+```
+
+Docker Hub:
+https://hub.docker.com/repository/docker/mrbody/docker-inspect-ui/general
+
+Código-fonte:
+https://github.com/mr-body/docker-inspect-ui/tree/main
+
+## 📦 Instalação local
 
 1. Clone o repositório:
    ```bash
